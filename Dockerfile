@@ -6,13 +6,12 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
-    postgresql-dev \
     && docker-php-ext-install \
     bcmath \
     intl \
     mbstring \
     opcache \
-    pdo_pgsql \
+    pdo_sqlite \
     zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -33,9 +32,12 @@ RUN mkdir -p \
     storage/framework/sessions \
     storage/framework/views
 
+RUN touch database/database.sqlite
+
 RUN chown -R www-data:www-data \
     storage \
-    bootstrap/cache
+    bootstrap/cache \
+    database
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
