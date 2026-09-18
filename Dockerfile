@@ -6,8 +6,8 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
-    && docker-php-ext-install \
     sqlite-dev \
+    && docker-php-ext-install \
     bcmath \
     intl \
     mbstring \
