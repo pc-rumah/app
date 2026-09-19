@@ -34,9 +34,9 @@ RUN mkdir -p \
 
 RUN chown -R www-data:www-data \
     storage \
-    bootstrap/cache \
+    bootstrap/cache
 
-    COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 80
