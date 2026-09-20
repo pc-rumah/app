@@ -1,0 +1,13 @@
+/vendor
+/node_modules
+/public/build
+/public/hot
+/storage/*.key
+/storage/pail
+.env
+.git
+.github
+/.idea
+/.vscode
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
