@@ -1,22 +1,3 @@
-# =========================
-# Stage 1: Build frontend
-# =========================
-FROM node:22-alpine AS frontend
-
-WORKDIR /var/www/html
-
-COPY package*.json ./
-RUN npm ci
-
-COPY resources ./resources
-COPY vite.config.js ./
-
-RUN npm run build
-
-
-# =========================
-# Stage 2: Laravel
-# =========================
 FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
@@ -25,6 +6,8 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
+    nodejs \
+    npm \
     && docker-php-ext-install \
     bcmath \
     intl \
@@ -37,15 +20,20 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY . .
+COPY composer.json composer.lock ./
 
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction
 
-# Ambil hasil build Vite
-COPY --from=frontend /var/www/html/public/build ./public/build
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
 
 RUN mkdir -p \
     /run/nginx \
