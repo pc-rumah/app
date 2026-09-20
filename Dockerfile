@@ -32,7 +32,7 @@ COPY . .
 
 # Copy the compiled assets from the frontend stage
 # Note: If using Vite, it outputs to public/build. If using older Laravel Mix, it outputs to public/css and public/js.
-COPY --from=frontend /app/public/build ./public/build
+COPY --from=frontend /app/public ./public
 
 RUN composer install \
     --no-dev \
