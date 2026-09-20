@@ -1,12 +1,23 @@
-# Stage 1: Build frontend assets
+# Stage 1: Build composer dependencies
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock* ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-scripts \
+    --prefer-dist
+
+# Stage 2: Build frontend assets
 FROM node:20-alpine AS frontend
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
+COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
 
-# Stage 2: PHP Application
+# Stage 3: PHP Application
 FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
@@ -27,17 +38,16 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy the application code
+# Copy application code
 COPY . .
 
-# Copy the compiled assets from the frontend stage
-# Note: If using Vite, it outputs to public/build. If using older Laravel Mix, it outputs to public/css and public/js.
+# Copy vendor dependencies from vendor stage
+COPY --from=vendor /app/vendor ./vendor
+
+# Copy compiled assets from frontend stage
 COPY --from=frontend /app/public/build ./public/build
 
-RUN composer install \
-    --no-dev \
-    --optimize-autoloader \
-    --no-interaction
+RUN composer dump-autoload --optimize --no-dev --no-interaction
 
 RUN mkdir -p \
     /run/nginx \
@@ -56,3 +66,4 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 EXPOSE 80
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
