@@ -1,12 +1,13 @@
 # Stage 1: Build composer dependencies
 FROM composer:2 AS vendor
 WORKDIR /app
-COPY composer.json composer.lock* ./
+COPY . .
 RUN composer install \
     --no-dev \
     --no-interaction \
     --no-scripts \
-    --prefer-dist
+    --prefer-dist \
+    --ignore-platform-reqs
 
 # Stage 2: Build frontend assets
 FROM node:20-alpine AS frontend
