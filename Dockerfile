@@ -1,3 +1,12 @@
+# Stage 1: Build frontend assets
+FROM node:20-alpine AS frontend
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Stage 2: PHP Application
 FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
@@ -18,7 +27,12 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+# Copy the application code
 COPY . .
+
+# Copy the compiled assets from the frontend stage
+# Note: If using Vite, it outputs to public/build. If using older Laravel Mix, it outputs to public/css and public/js.
+COPY --from=frontend /app/public/build ./public/build
 
 RUN composer install \
     --no-dev \
