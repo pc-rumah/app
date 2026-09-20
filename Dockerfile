@@ -6,34 +6,24 @@ RUN apk add --no-cache \
     icu-dev \
     libzip-dev \
     oniguruma-dev \
-    nodejs \
-    npm \
     && docker-php-ext-install \
     bcmath \
     intl \
     mbstring \
     opcache \
-    pdo_sqlite \
+    pdo_mysql \
     zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-COPY composer.json composer.lock ./
+COPY . .
 
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction
-
-COPY package.json package-lock.json ./
-
-RUN npm ci
-
-COPY . .
-
-RUN npm run build
 
 RUN mkdir -p \
     /run/nginx \
@@ -42,12 +32,9 @@ RUN mkdir -p \
     storage/framework/sessions \
     storage/framework/views
 
-RUN touch database/database.sqlite
-
 RUN chown -R www-data:www-data \
     storage \
-    bootstrap/cache \
-    database
+    bootstrap/cache
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
